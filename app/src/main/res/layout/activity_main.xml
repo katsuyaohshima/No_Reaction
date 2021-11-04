@@ -6,12 +6,31 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextureView
+        android:id="@+id/texture_view"
+        android:layout_width="640px"
+        android:layout_height="640px"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/capture_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:text="Capture"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/texture_view" />
+
     <ImageView
         android:id="@+id/titleImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleType="centerCrop"
-        android:visibility="gone"
+        android:visibility="visible"
         app:srcCompat="@drawable/bgimage"
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="0dp"
@@ -23,7 +42,7 @@
         android:layout_height="wrap_content"
         android:text="No_Reaction"
         android:textSize="30sp"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -35,11 +54,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="start"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.751" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
