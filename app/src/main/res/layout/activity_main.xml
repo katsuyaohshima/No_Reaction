@@ -6,15 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextureView
-        android:id="@+id/texture_view"
-        android:layout_width="640px"
-        android:layout_height="640px"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <Button
         android:id="@+id/capture_button"
         android:layout_width="wrap_content"
@@ -25,6 +16,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/texture_view" />
 
+    <TextureView
+        android:id="@+id/texture_view"
+        android:layout_width="640px"
+        android:layout_height="640px"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:id="@+id/titleImage"
         android:layout_width="wrap_content"
@@ -34,7 +34,8 @@
         app:srcCompat="@drawable/bgimage"
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="0dp"
-        tools:srcCompat="@drawable/bgimage" />
+        tools:srcCompat="@drawable/bgimage"
+        tools:visibility="gone" />
 
     <TextView
         android:id="@+id/titleLabel"
@@ -47,7 +48,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.19999999" />
+        app:layout_constraintVertical_bias="0.19999999"
+        tools:visibility="gone" />
 
     <Button
         android:id="@+id/titleButton"
@@ -59,7 +61,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.751" />
+        app:layout_constraintVertical_bias="0.751"
+        tools:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/testview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:srcCompat="@tools:sample/avatars" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
