@@ -1,12 +1,11 @@
 package com.example.no_reaction;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -17,14 +16,17 @@ import android.widget.Button;
 
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.CameraSelector;
 import androidx.camera.core.CameraX;
-import androidx.camera.core.ImageAnalysis;
-import androidx.camera.core.ImageAnalysisConfig;
-import androidx.camera.core.ImageCapture;
-import androidx.camera.core.ImageCaptureConfig;
-import androidx.camera.core.ImageProxy;
+//import androidx.camera.core.ImageAnalysis;
+//import androidx.camera.core.ImageAnalysisConfig;
+//import androidx.camera.core.ImageCapture;
+//import androidx.camera.core.ImageCaptureConfig;
+//import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
-import androidx.camera.core.PreviewConfig;
+//import androidx.camera.core.PreviewConfig;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -38,9 +40,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.mediapipe.formats.proto.LandmarkProto;
+import com.google.mediapipe.solutions.hands.HandLandmark;
+import com.google.mediapipe.solutions.hands.Hands;
+import com.google.mediapipe.solutions.hands.HandsOptions;
+import com.google.mediapipe.formats.proto.LandmarkProto.NormalizedLandmark;
+import com.google.mediapipe.solutions.facemesh.FaceMesh;
+import com.google.mediapipe.solutions.facemesh.FaceMeshOptions;
+import com.google.mediapipe.solutions.facemesh.FaceMeshResult;
+
 import java.io.File;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 
@@ -59,8 +73,10 @@ public class MainActivity extends AppCompatActivity {
 
     // UI
     private TextureView textureView;
+    private PreviewView previewView;
     private Button captureButton;
     private ImageView testview;
+    private TextView text;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,9 +91,13 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.titleButton).setOnClickListener(this::startAnimation);
 
         // UI
+        this.previewView = findViewById(R.id.viewFinder);
         this.textureView = findViewById(R.id.texture_view);
         this.captureButton = findViewById(R.id.capture_button);
         this.testview = findViewById(R.id.testview);
+        this.text = findViewById(R.id.textView);
+
+
         captureButton.setVisibility(View.GONE);
 
         captureButton.setOnClickListener(this::capture);
@@ -121,6 +141,33 @@ public class MainActivity extends AppCompatActivity {
 
     // カメラの開始
     private void startCamera() {
+        ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+
+        cameraProviderFuture.addListener(() -> {
+            try {
+                // Used to bind the lifecycle of cameras to the lifecycle owner
+                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+
+                // Preview
+                PreviewView previewView = findViewById(R.id.viewFinder);
+                Preview preview = new Preview.Builder().build();
+                preview.setSurfaceProvider(previewView.getSurfaceProvider());
+
+                // Select back camera as a default
+                CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
+
+                // Unbind use cases before rebinding
+                cameraProvider.unbindAll();
+
+                // Bind use cases to camera
+                cameraProvider.bindToLifecycle(this, cameraSelector, preview);
+            } catch (ExecutionException | InterruptedException e) {
+                //Log.e(TAG, e.getLocalizedMessage(), e);
+            }
+        }, ContextCompat.getMainExecutor(this));
+    }
+    /*
+    private void startCamera() {
         // プレビューの表示
         PreviewConfig pConfig = new PreviewConfig.Builder().build();
         Preview preview = new Preview(pConfig);
@@ -159,43 +206,61 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+     */
+
     Handler handler= new Handler();
     Boolean captureWkup = false;
+    Bitmap nowView ;
+    private FaceMesh facemesh;
 
     public void capture(View v){
 
         // 多重起動防止
         if (captureWkup == true){return;}
         captureWkup = true;
+
+        facemesh = new FaceMesh(
+                this,
+                FaceMeshOptions.builder()
+                        .setStaticImageMode(true)
+                        .setRefineLandmarks(true)
+                        .setRunOnGpu(true)
+                        .build());
+
+        facemesh.setResultListener(
+                faceMeshResult -> {
+                    try{
+                        NormalizedLandmark noseLandmark = faceMeshResult.multiFaceLandmarks().get(0).getLandmarkList().get(1);
+                        Log.d("AAA", String.valueOf(noseLandmark));
+                        text.setText(String.valueOf(noseLandmark));
+                    }catch(Exception e) {
+                        Log.d("AAA", "err");
+                        //pass
+                    }
+                }
+                );
+
         new Thread(new Runnable() {
             @Override
             public void run() {
                 // マルチスレッドにしたい処理 ここから
                 // 画処理をここに実装する。
-                Bitmap nowView = textureView.getBitmap();
-                Bitmap prevView = nowView;
-                int width = nowView.getWidth();
-                int height = nowView.getHeight();
-                int count = 0;
-                int split = 4;
-
-                Bitmap new_bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                Canvas canvas = new Canvas(new_bitmap);
 
                 while (true) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
 
-                    nowView = textureView.getBitmap();
-                    Bitmap line = Bitmap.createBitmap(nowView,0, count, width, split, null, true);
-                    canvas.drawBitmap(line, 0, count, (Paint)null); // image, x座標, y座標, Paintイタンス
+                    try {
+                        facemesh.send(nowView);
+                    }catch (Exception e){}
 
-                    count = count+split;
-                    if (count+split > height-1){count  = 0;}
-
-                    Bitmap finalNowView = new_bitmap;
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            testview.setImageBitmap(finalNowView);
+                            nowView = previewView.getBitmap();
                         }
                     });
                 }
@@ -220,4 +285,5 @@ public class MainActivity extends AppCompatActivity {
         objectAnimator.setRepeatCount(0);//0で1回2
         objectAnimator.start();
     }
+
 }
