@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
                 // Select back camera as a default
-                CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
+                CameraSelector cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
 
                 // Unbind use cases before rebinding
                 cameraProvider.unbindAll();
@@ -213,6 +213,7 @@ public class MainActivity extends AppCompatActivity {
     Handler handler= new Handler();
     Boolean captureWkup = false;
     Bitmap nowView ;
+    Bitmap preView;
     private FaceMesh facemesh;
     private long prevtime =0;
     int RING_MAX_INDEX = 30;
@@ -312,15 +313,24 @@ public class MainActivity extends AppCompatActivity {
                 // 画処理をここに実装する。
 
                 while (true) {
+                    //Log.d("BBB", "1");
+                    //try {
+                    //    Thread.sleep(100);
+                    //} catch (InterruptedException e) {
+                    //    e.printStackTrace();
+                    //}
+                    //Log.d("BBB", "2");
+
+                    try {
+                        facemesh.send(nowView);
+                    }catch (Exception e){}
+                    //Log.d("BBB", "3");
+
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-
-                    try {
-                        facemesh.send(nowView);
-                    }catch (Exception e){}
 
                     handler.post(new Runnable() {
                         @Override
