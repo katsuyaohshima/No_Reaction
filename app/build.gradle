@@ -59,7 +59,7 @@ dependencies {
     implementation 'com.google.flogger:flogger:0.6'
     implementation 'com.google.flogger:flogger-system-backend:0.6'
     implementation 'com.google.guava:guava:27.0.1-android'
-    implementation 'com.google.protobuf:protobuf-java:3.11.4'
+    //implementation 'com.google.protobuf:protobuf-java:3.11.4'
 
 
     // CameraX core library using camera2 implementation

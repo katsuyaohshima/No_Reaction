@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
     private Button captureButton;
     private ImageView testview;
     private TextView text;
+    private TextView text2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
         this.captureButton = findViewById(R.id.capture_button);
         this.testview = findViewById(R.id.testview);
         this.text = findViewById(R.id.textView);
+        this.text2 = findViewById(R.id.textView2);
 
 
         captureButton.setVisibility(View.GONE);
@@ -212,12 +214,23 @@ public class MainActivity extends AppCompatActivity {
     Boolean captureWkup = false;
     Bitmap nowView ;
     private FaceMesh facemesh;
+    private long prevtime =0;
+    int RING_MAX_INDEX = 30;
+    int RING_DUMMY_INDEX = 999;
+    int RING_NOW_INDEX = RING_DUMMY_INDEX;
+    float RING[] = new float[RING_MAX_INDEX];
+    float RING_AVE=0;
+    float TH_UNADUKI_RANGE = (float) 0.1;
+    float TH_UNADUKI_FRM = 3000;
+    int UNADUKI_COUNT=0;
+
 
     public void capture(View v){
 
         // 多重起動防止
         if (captureWkup == true){return;}
         captureWkup = true;
+
 
         facemesh = new FaceMesh(
                 this,
@@ -231,8 +244,60 @@ public class MainActivity extends AppCompatActivity {
                 faceMeshResult -> {
                     try{
                         NormalizedLandmark noseLandmark = faceMeshResult.multiFaceLandmarks().get(0).getLandmarkList().get(1);
-                        Log.d("AAA", String.valueOf(noseLandmark));
-                        text.setText(String.valueOf(noseLandmark));
+                        //Log.d("AAA", String.valueOf(noseLandmark));
+                        float Face_y = noseLandmark.getY();
+
+
+                        //RINGBUFFへ保存
+                        //初期化
+                        if(RING_NOW_INDEX == RING_DUMMY_INDEX){
+                            RING_NOW_INDEX = 0;
+                            for(int i = 0;i<RING_MAX_INDEX;i++){
+                                RING[i]=Face_y;
+                            }
+                        }
+                        //ためる
+                        RING[RING_NOW_INDEX] = Face_y;
+                        RING_NOW_INDEX ++;
+                        if(RING_NOW_INDEX == RING_MAX_INDEX){
+                            RING_NOW_INDEX = 0;
+                        }
+
+                        //平均化
+                        RING_AVE = 0;
+                        for(int i = 0;i<RING_MAX_INDEX;i++){
+                            RING_AVE += RING[i];
+                        }
+                        RING_AVE /= RING_MAX_INDEX;
+
+                        //UNADUKI
+                        if(Face_y - RING_AVE > TH_UNADUKI_RANGE){
+                            if (prevtime == 0) {
+                                prevtime = System.currentTimeMillis();
+                            }
+                        }else{
+                            if(prevtime != 0){
+                                if((int) (System.currentTimeMillis()-prevtime)<TH_UNADUKI_FRM){
+                                    prevtime = 0;
+                                    UNADUKI_COUNT++;
+                                    text2.setText(String.valueOf(UNADUKI_COUNT));
+                                }else{
+                                    prevtime = 0;
+                                }
+                            }
+                        }
+
+
+                        text.setText(String.valueOf(Face_y)+" "+String.valueOf(RING_AVE));
+
+
+
+                        //if (prevtime == 0) {
+                        //    prevtime = System.currentTimeMillis();
+                        //}
+                        //text2.setText(String.valueOf((int) (System.currentTimeMillis()-prevtime)));
+                        //prevtime = System.currentTimeMillis();
+
                     }catch(Exception e) {
                         Log.d("AAA", "err");
                         //pass
